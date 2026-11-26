@@ -4,7 +4,14 @@
 メタデータを解析した後、マップ全体の整合性を検証する流れを想定している。
 """
 
-from models import Connection, MapData, MetadataValue, Zone
+from models import (
+    Connection,
+    MapData,
+    MetadataValue,
+    Zone,
+    ZoneName,
+    ConnectionKey,
+)
 from errors import MapParseError
 
 
@@ -38,8 +45,8 @@ class Parser:
               MapParseError: マップの書式や内容が不正な場合。
         """
         self.total_drones = 0
-        self.zones: dict[str, Zone] = {}
-        self.connections: dict[tuple[str, str], Connection] = {}
+        self.zones: dict[ZoneName, Zone] = {}
+        self.connections: dict[ConnectionKey, Connection] = {}
         self._drone_count_seen = False
         self._start_hub = False
         self._end_hub = False
@@ -77,13 +84,13 @@ class Parser:
             raise MapParseError(
                 line_num,
                 "Expected a directive before metadata."
-                )
+            )
         prefix = parts[0]
         if not self._drone_count_seen and prefix != "nb_drones:":
             raise MapParseError(
                 line_num,
                 "The first non-comment line must define nb_drones."
-                )
+            )
         if prefix == "nb_drones:":
             if metadata_text:
                 raise MapParseError(
@@ -138,7 +145,7 @@ class Parser:
             raise MapParseError(
                 line_num,
                 "nb_drones is defined more than once."
-                )
+            )
         if len(parts) != 2:
             raise MapParseError(line_num, "Expected 'nb_drones: <number>'.")
         try:
@@ -147,7 +154,7 @@ class Parser:
             raise MapParseError(
                 line_num,
                 "The drone count must be an integer."
-                ) from e
+            ) from e
         if total_drones < 1:
             raise MapParseError(line_num, "The drone count must be positive.")
         self.total_drones = total_drones
@@ -179,33 +186,33 @@ class Parser:
             raise MapParseError(
                 line_num,
                 f"The zone name '{name}' cannot contain '-'."
-                )
+            )
         if name in self.zones:
             raise MapParseError(
                 line_num,
                 f"The zone name '{name}' is already defined."
-                )
+            )
         try:
             x, y = int(parts[2]), int(parts[3])
         except ValueError as e:
             raise MapParseError(
                 line_num,
                 "Zone coordinates must be integers."
-                ) from e
+            ) from e
         if role == "start_hub:" or role == "end_hub:":
             if role == "start_hub:":
                 if self._start_hub:
                     raise MapParseError(
                         line_num,
                         f"{role.removesuffix(':')} is defined more than once."
-                        )
+                    )
                 self._start_hub = True
             elif role == "end_hub:":
                 if self._end_hub:
                     raise MapParseError(
                         line_num,
                         f"{role.removesuffix(':')} is defined more than once."
-                        )
+                    )
                 self._end_hub = True
             metadata = self._parse_metadata(
                 metadata_text,
@@ -224,7 +231,7 @@ class Parser:
             raise MapParseError(
                 line_num,
                 f"Invalid zone type '{metadata['zone']}'."
-                )
+            )
 
         self.zones[name] = Zone(
             name=name,
@@ -255,13 +262,13 @@ class Parser:
             raise MapParseError(
                 line_num,
                 "Expected 'connection: <zone1>-<zone2>'."
-                )
+            )
         endpoints = parts[1].split("-")
         if len(endpoints) != 2 or not all(endpoints):
             raise MapParseError(
                 line_num,
                 "A connection needs exactly two zones."
-                )
+            )
         zone1, zone2 = endpoints
         if zone1 == zone2:
             raise MapParseError(line_num, "A zone cannot connect to itself.")
@@ -318,7 +325,7 @@ class Parser:
                 raise MapParseError(
                     line_num,
                     f"Invalid metadata item '{item}'."
-                    )
+                )
             key, value = item.split("=", maxsplit=1)
             if key == ignored_key:
                 continue
@@ -326,14 +333,14 @@ class Parser:
                 raise MapParseError(
                     line_num,
                     f"Metadata '{key}' must have a value."
-                    )
+                )
             if key not in defaults:
                 raise MapParseError(line_num, f"Unknown metadata key '{key}'.")
             if key in seen_keys:
                 raise MapParseError(
                     line_num,
                     f"Metadata key '{key}' is duplicated."
-                    )
+                )
             seen_keys.add(key)
 
             if key in ("max_drones", "max_link_capacity"):
@@ -343,7 +350,7 @@ class Parser:
                     raise MapParseError(
                         line_num,
                         f"Metadata '{key}' must be an integer."
-                        ) from e
+                    ) from e
                 if number < 1:
                     raise MapParseError(
                         line_num,

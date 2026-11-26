@@ -1,7 +1,13 @@
 """計画済み経路をターンごとの状態と出力文字列へ変換する。"""
 
 from graph import Graph
-from models import DroneId, ZoneAtTurn, ZoneName, TurnState
+from models import (
+    DroneId,
+    ZoneAtTurn,
+    ZoneName,
+    TurnState,
+    ConnectionKey,
+)
 
 
 class Simulation:
@@ -84,7 +90,7 @@ class Simulation:
         zone_usage: dict[ZoneName, int] = {}
         # 各接続を何機使っているか
         connection_usage: dict[
-            tuple[ZoneName, ZoneName],
+            ConnectionKey,
             int,
         ] = {}
         # ゴール済みの機数

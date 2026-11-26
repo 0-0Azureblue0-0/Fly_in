@@ -73,12 +73,13 @@ drones between consecutive states, and shows the current turn and
 delivered-drone count in a translucent panel. White outlines and a fixed star
 background keep the map readable while giving it a playful appearance. This
 makes the network topology, simultaneous movement, waiting, and
-restricted-zone transit easier to understand. Restricted zones have a
-persistent orange glow, and a connection glows while a drone is moving through
-it toward a restricted zone. Zone colors use the map's `color` metadata when
-Pygame recognizes the color name. For an unknown color
-name, the start hub falls back to green, the end hub falls back to yellow, and
-any other zone falls back to gray.
+restricted-zone transit easier to understand. Restricted zones retain the
+color specified by the map and are surrounded by a persistent candy-pink glow.
+Every connection attached to a restricted zone uses the same persistent glow,
+making slow-entry routes visible before the simulation starts. Zone colors use
+the map's `color` metadata when Pygame recognizes the color name. For an
+unknown color name, the start hub falls back to green, the end hub falls back
+to yellow, and any other zone falls back to gray.
 
 Visualizer controls:
 
@@ -189,7 +190,7 @@ end hub.
 ## Project structure
 
 - `fly_in.py`: command-line entry point and complete workflow
-- `read_map.py`: input parser and validation
+- `parser.py`: input parser and validation
 - `models.py`: shared data models and type aliases
 - `graph.py`: custom graph representation and movement costs
 - `pathfinding.py`: reservation-free shortest path
@@ -216,7 +217,6 @@ end hub.
 - [Python documentation](https://docs.python.org/3/)
 - [Python `heapq` documentation](https://docs.python.org/3/library/heapq.html)
 - [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
-- [Cooperative pathfinding](https://www.davidsilver.uk/wp-content/uploads/2020/03/coop-path-AIWisdom.pdf)
 - The Fly-in subject and peer-evaluation criteria supplied with the project
 
 ### Use of AI
@@ -229,7 +229,3 @@ AI was used as a review and learning aid for the following tasks:
   planning, reservations, and simulation;
 - suggesting tests and explaining test or lint results; and
 - reviewing documentation wording.
-
-The generated suggestions were checked against the subject, the current
-source code, and executed tests before being accepted. The project owner is
-responsible for understanding and explaining the final implementation.

@@ -1,6 +1,6 @@
 """MapDataから経路探索に使用するグラフ構造を作るモジュール。"""
 
-from models import Connection, MapData, Zone
+from models import Connection, MapData, Zone, ZoneName
 
 
 class Graph:
@@ -20,7 +20,7 @@ class Graph:
         self.connections = map_data.connections
         self.adjacency = self._build_adjacency()
 
-    def _build_adjacency(self) -> dict[str, list[Connection]]:
+    def _build_adjacency(self) -> dict[ZoneName, list[Connection]]:
         """すべてのゾーンについて双方向の隣接リストを作る。
         各Connectionをzone1側とzone2側の両方に登録する。接続されて
         いないゾーンも、空のリストを持つキーとして登録する。
@@ -29,7 +29,7 @@ class Graph:
             する辞書。
         """
         # 接続がないゾーンにも空リストを用意
-        adjacency: dict[str, list[Connection]] = {}
+        adjacency: dict[ZoneName, list[Connection]] = {}
         for zone_name in self.zones:
             adjacency[zone_name] = []
 
@@ -39,7 +39,7 @@ class Graph:
             adjacency[connection.zone2].append(connection)
         return adjacency
 
-    def get_neighbors(self, zone_name: str) -> list[Zone]:
+    def get_neighbors(self, zone_name: ZoneName) -> list[Zone]:
         """指定したゾーンから直接移動できる隣接ゾーンを取得する。
 
         blockedゾーンは移動先として返さないことを想定している。
@@ -65,8 +65,8 @@ class Graph:
 
     def get_connection(
         self,
-        zone1: str,
-        zone2: str,
+        zone1: ZoneName,
+        zone2: ZoneName,
     ) -> Connection | None:
         """2つのゾーンを結ぶ接続を取得する。
 
@@ -111,7 +111,7 @@ class Graph:
                 return zone
         raise ValueError("End hub is not defined.")
 
-    def get_movement_cost(self, zone_name: str) -> int:
+    def get_movement_cost(self, zone_name: ZoneName) -> int:
         """指定したゾーンへ進入するために必要なターン数を返す。
 
         normalとpriorityは1ターン、restrictedは2ターンを想定する。

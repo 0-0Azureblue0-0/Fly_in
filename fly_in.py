@@ -1,4 +1,4 @@
-from read_map import Parser
+from parser import Parser
 from errors import MapParseError
 from graph import Graph
 from path_planner import PathPlanner
@@ -14,12 +14,15 @@ def main() -> int:
     エラーメッセージを標準エラー出力へ表示することを想定している。
     """
     visual_mode = False
-
+    # capacity_info = False
     if len(sys.argv) == 2 and not sys.argv[1].startswith("-"):
         file_path = sys.argv[1]
     elif len(sys.argv) == 3 and sys.argv[1] == "--visual":
         visual_mode = True
         file_path = sys.argv[2]
+    # elif len(sys.argv) == 3 and sys.argv[1] == "--capacity-info":
+    #     capacity_info = True
+    #     file_path = sys.argv[2]
     else:
         print(
             "Usage: python3 fly_in.py [--visual] <mapfile>",
@@ -36,6 +39,17 @@ def main() -> int:
         simulation = Simulation(graph, planned_paths)
         turn_states = simulation.build_turn_states()
         output_lines = simulation.run()
+        # 容量表示を有効にする場合は、直下の出力ループを差し替える。
+        # for output_line, state in zip(output_lines, turn_states):
+        #     print(output_line)
+        #     if capacity_info:
+        #         for zone_name, used in state["zone_usage"].items():
+        #             zone = graph.zones[zone_name]
+        #             if zone.role in ("start_hub:", "end_hub:"):
+        #                 max_drones = "∞"
+        #             else:
+        #                 max_drones = zone.metadata["max_drones"]
+        #             print(f"Zone {zone_name}: {used}/{max_drones} drones")
         for output_line in output_lines:
             print(output_line)
 

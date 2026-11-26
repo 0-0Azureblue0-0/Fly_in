@@ -20,7 +20,7 @@ class ReservationPathFinder:
         reservations: ReservationTable,
         start_turn: Turn,
         max_turn: Turn,
-    ) -> list[tuple[str, int]] | None:
+    ) -> list[ZoneAtTurn] | None:
         """予約済みの容量を避けて、一機分の時間付き経路を探す。
 
         (zone_name, turn)を探索状態とし、到着ターンが早い状態から調べる。
@@ -70,7 +70,7 @@ class ReservationPathFinder:
                 current_turn,
                 reservations,
                 max_turn,
-                )
+            )
             # 待機先または移動先の候補、その場所にいるターンが各々入る
             for candidate_name, candidate_turn in candidates:
                 candidate_state = (candidate_name, candidate_turn)
@@ -90,13 +90,14 @@ class ReservationPathFinder:
                         candidate_priority
                     )
                     previous_state[candidate_state] = current_state
-                    heapq.heappush(search_queue,
-                                   (
-                                       candidate_turn,
-                                       candidate_priority,
-                                       candidate_name,
-                                    ),
-                                   )
+                    heapq.heappush(
+                        search_queue,
+                        (
+                            candidate_turn,
+                            candidate_priority,
+                            candidate_name,
+                        ),
+                    )
 
         if goal_state is None:
             return None
@@ -110,7 +111,7 @@ class ReservationPathFinder:
         turn: Turn,
         reservations: ReservationTable,
         max_turn: int,
-    ) -> list[tuple[str, int]]:
+    ) -> list[ZoneAtTurn]:
         """移動、待機、restricted移動から予約可能な候補リストを作る"""
         candidates: list[ZoneAtTurn] = []
         next_turn = turn + 1
@@ -132,8 +133,10 @@ class ReservationPathFinder:
             # そのターンに実際空きがあるか確認
             if (reservations.can_use_zone(neighbor_name, arrival_turn)) and (
                 reservations.can_use_connection(
-                    zone_name, neighbor_name, connection_turn
-                    )
+                    zone_name,
+                    neighbor_name,
+                    connection_turn,
+                )
             ):
                 candidates.append((neighbor_name, arrival_turn))
 
@@ -141,9 +144,9 @@ class ReservationPathFinder:
 
     def _reconstruct_path(
         self,
-        previous_state: dict[tuple[str, int], tuple[str, int] | None],
-        goal_state: tuple[str, int],
-    ) -> list[tuple[str, int]]:
+        previous_state: dict[ZoneAtTurn, ZoneAtTurn | None],
+        goal_state: ZoneAtTurn,
+    ) -> list[ZoneAtTurn]:
         """goalから直前状態を逆にたどり、時間付き経路を復元する。"""
         shortest_state = []
         path_state: ZoneAtTurn | None = goal_state

@@ -32,7 +32,7 @@ clean:
 	find . \
 		-path './.git' -prune -o \
 		-path './.venv' -prune -o \
-		-type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+		-type f \( -name '*.pyc' -o -name '*.pyo' \) -exec rm -f {} +
 	rm -rf .mypy_cache .pytest_cache .ruff_cache htmlcov build dist
 	rm -f .coverage .coverage.*
 

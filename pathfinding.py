@@ -17,13 +17,12 @@ class PathFinder:
         self.graph = graph
 
     def find_shortest_path(
-                           self,
-                           start_name: ZoneName,
-                           end_name: ZoneName
-                           ) -> tuple[
-                                      list[ZoneName],  # 最短経路
-                                      tuple[Turn,  int],  # 合計コスト、priority評価
-                                     ] | None:
+        self,
+        start_name: ZoneName,
+        end_name: ZoneName,
+    ) -> tuple[
+            list[ZoneName],  # 最短経路
+            tuple[Turn, int]] | None:  # 合計コスト、priority評価
         """行ける候補のゾーンからゴールのゾーンまでの最良経路を探索する。
 
         移動コストの合計が最小になる経路を優先し、合計コストが同じ場合は
@@ -80,7 +79,7 @@ class PathFinder:
 
         # 終了ゾーンからprevious情報を逆向きにたどって経路を作る。
         shortest_path: list[str] = []
-        path_zone_name: str | None = end_name
+        path_zone_name: ZoneName | None = end_name
         while path_zone_name is not None:
             shortest_path.append(path_zone_name)
             path_zone_name = previous_zone[path_zone_name]

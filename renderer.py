@@ -4,7 +4,7 @@ import math
 import random
 import pygame.freetype as freetype
 from graph import Graph
-from models import TurnState
+from models import TurnState, ConnectionKey
 
 BASE_WIDTH, BASE_HEIGHT = 1000, 700
 BASE_PADDING = 80
@@ -29,8 +29,8 @@ GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 GRAY = (112, 112, 112)
 SKYBLUE = (135, 206, 235)
-ORANGE = (255, 166, 76)
-ORANGE_GLOW = (255, 126, 68, 90)
+RESTRICTED_PINK = (255, 145, 196)
+RESTRICTED_GLOW = (255, 105, 180, 105)
 PANEL_COLOR = (37, 42, 74, 215)
 PANEL_BORDER_COLOR = (255, 192, 203, 230)
 
@@ -316,7 +316,7 @@ class Renderer:
             next_state,
         )
 
-        # restrictedゾーンへ移動中の接続の光を先に描く
+        # restrictedゾーンにつながる接続の光を先に描く
         for connection in self.graph.connections.values():
             zone1 = self.graph.zones[connection.zone1]
             zone2 = self.graph.zones[connection.zone2]
@@ -338,7 +338,7 @@ class Renderer:
             )
             pygame.draw.line(
                 glow_layer,
-                ORANGE_GLOW,
+                RESTRICTED_GLOW,
                 position1,
                 position2,
                 glow_width,
@@ -363,15 +363,18 @@ class Renderer:
                 (connection.zone1, connection.zone2)
             )
             connection_key = (zone1_name, zone2_name)
-            color = ORANGE if connection_key in glowing_connections else WHITE
+            color = (
+                RESTRICTED_PINK
+                if connection_key in glowing_connections
+                else WHITE
+            )
             pygame.draw.line(
                 screen,
                 color,
                 position1,
                 position2,
-                line_width
-                + self._scale_size(2, scale)
-                if color == ORANGE
+                line_width + self._scale_size(2, scale)
+                if color == RESTRICTED_PINK
                 else line_width,
             )
 
@@ -379,13 +382,25 @@ class Renderer:
             self,
             current_state: TurnState,
             next_state: TurnState | None,
-    ) -> set[tuple[str, str]]:
-        """restrictedへ移動中または移動開始する接続を返す。"""
+    ) -> set[ConnectionKey]:
+        """restrictedにつながる、または移動中の接続を返す。"""
         states = [current_state]
         if next_state is not None:
             states.append(next_state)
 
         glowing_connections: set[tuple[str, str]] = set()
+        for connection in self.graph.connections.values():
+            zone1 = self.graph.zones[connection.zone1]
+            zone2 = self.graph.zones[connection.zone2]
+            if (
+                zone1.metadata["zone"] == "restricted"
+                or zone2.metadata["zone"] == "restricted"
+            ):
+                zone1_name, zone2_name = sorted(
+                    (connection.zone1, connection.zone2)
+                )
+                glowing_connections.add((zone1_name, zone2_name))
+
         for state in states:
             for location in state["drone_positions"].values():
                 if location[0] != "connection":
@@ -409,12 +424,20 @@ class Renderer:
             if zone.metadata["zone"] != "restricted":
                 continue
             position = self._to_screen_position(zone.x, zone.y, screen)
-            # 発光
+            # 元のゾーン色に重ならないよう、外側だけを二重に光らせる
             pygame.draw.circle(
                 glow_layer,
-                ORANGE_GLOW,
+                (255, 105, 180, 45),
                 position,
-                zone_radius + self._scale_size(12, scale),
+                zone_radius + self._scale_size(14, scale),
+                width=self._scale_size(5, scale),
+            )
+            pygame.draw.circle(
+                glow_layer,
+                RESTRICTED_GLOW,
+                position,
+                zone_radius + self._scale_size(8, scale),
+                width=self._scale_size(3, scale),
             )
         screen.blit(glow_layer, (0, 0))
 
@@ -443,11 +466,7 @@ class Renderer:
                 BASE_ZONE_OUTLINE_WIDTH,
                 scale,
             )
-            outline_color = (
-                ORANGE
-                if zone.metadata["zone"] == "restricted"
-                else WHITE
-            )
+            outline_color = WHITE
             pygame.draw.circle(
                 screen,
                 outline_color,

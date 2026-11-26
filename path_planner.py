@@ -16,7 +16,7 @@ class PathPlanner:
             self,
             graph: Graph,
             total_drones: int,
-            ):
+    ) -> None:
         """全ドローンの計画に使うグラフと機数を保存する。"""
         self.graph = graph
         self.total_drones = total_drones
@@ -58,7 +58,7 @@ class PathPlanner:
             if path_list is None:
                 raise RuntimeError(
                     f"No path found for drone {drone_id}."
-                    )
+                )
             # 探した経路を予約する
             if not reservations.reserve_path(
                 path_list,
@@ -66,7 +66,7 @@ class PathPlanner:
             ):
                 raise RuntimeError(
                     f"Failed to reserve path for drone {drone_id}."
-                    )
+                )
             # 成功した経路を保存する
             planned_paths[drone_id] = path_list
         return planned_paths

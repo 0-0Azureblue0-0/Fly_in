@@ -50,7 +50,7 @@ class ReservationTable:
             zone1: ZoneName,
             zone2: ZoneName,
             turn: Turn,
-            ) -> bool:
+    ) -> bool:
         """指定したターンに、指定した接続にもう一機予約できるかを判定する。
            両方向を同じ接続として扱い、予約数がmax_link_capacity未満かを判定する。
         """
@@ -108,7 +108,7 @@ class ReservationTable:
                 ):
                     return False
             else:
-                if not self.reserve_connection(
+                if not self._reserve_connection(
                     previous_zone,
                     current_zone,
                     previous_turn + 1,
@@ -128,7 +128,7 @@ class ReservationTable:
             zone_name: ZoneName,
             turn: Turn,
             drone_id: DroneId,
-            ) -> bool:
+    ) -> bool:
         """引数で指定されたゾーンとターンに引数で渡されたdrone_idを予約登録する関数
            max_droneを確認して使用できれば辞書に追加。
            (zone_name, turn)の集合がなければ、空集合を辞書へ登録。
@@ -140,19 +140,19 @@ class ReservationTable:
             reserved_drone_ids = self.zone_reservations.setdefault(
                 (zone_name, turn),
                 set(),
-                )
+            )
             # 同じ集合を指しているので辞書のバリューも変わる
             reserved_drone_ids.add(drone_id)
             return True
         return False
 
-    def reserve_connection(
+    def _reserve_connection(
             self,
             zone1: ZoneName,
             zone2: ZoneName,
             turn: Turn,
             drone_id: DroneId,
-            ) -> bool:
+    ) -> bool:
         """max_link_capacityを確認して使用できれば辞書に追加。
            (zone_name, zone_name, turn)の集合がなければ、空集合を辞書へ登録。
            その集合へdrone_idを追加。"""
@@ -166,7 +166,7 @@ class ReservationTable:
                     connection.zone2,
                     turn,
                 ), set(),
-                )
+            )
             # 同じ集合を指しているので辞書のバリューも変わる
             reserved_drone_ids.add(drone_id)
             return True
